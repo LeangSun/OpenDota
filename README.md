@@ -10,7 +10,9 @@ Firstly, use "get_player_list" to retrieve players from parsed match just ended.
 Here we use 
 
 from functions import get_player_list, retrieve_player_info, test_players
-account_ids = get_player_list(1, 'account_id.json', 442498217), which means, we want to retrieve players from 100 parsed matches just ended before the match "7632820016"), and write the result in account_id.json. 100 calls provide 475 player id.
+account_ids = get_player_list(1, 'account_id.json', 442498217)
+
+,which means, we want to retrieve players from 100 parsed matches just ended before the match "7632820016"), and write the result in account_id.json. 100 calls provide 475 player id.
 
 ![image](https://github.com/LeangSun/OpenDota/assets/123008712/6983966b-1be1-459b-801a-10aab3d235ae)
 
