@@ -9,8 +9,8 @@ Firstly, use "get_player_list" to retrieve players from parsed match just ended.
 
 Here we use 
 
-from functions import get_player_list, retrieve_player_info, test_players
-account_ids = get_player_list(1, 'account_id.json', 442498217)
+![image](https://github.com/LeangSun/OpenDota/assets/123008712/a24a4c5f-78bb-431c-ba0b-8950e7e1a998)
+
 
 ,which means, we want to retrieve players from 100 parsed matches just ended before the match "7632820016"), and write the result in account_id.json. 100 calls provide 475 player id.
 
@@ -18,18 +18,8 @@ account_ids = get_player_list(1, 'account_id.json', 442498217)
 
 To simplify the example, take the first ten players: 
 
-id_list = [1032473510, 405100511, 153202767, 912265313, 69537170, 362311368, 388300006, 258901728, 424640932, 160150038]
-player_data = []
-for id in id_list:
-    data = retrieve_player_info(id)
-    player_data.append(data)
+![image](https://github.com/LeangSun/OpenDota/assets/123008712/e78bdbd1-2e5e-4caa-9600-06c30e519cbc)
 
-test_result = []
-for data in player_data:
-    test = test_players(data, 1609459200)
-    test_result.append(test)
-
-print(test_result)
 
 "1609459200" indicates that we want to have information about "Rank tier; Total number of matches; Number of matches before the timestamp; Number of parsed matches before the timestamp; Percentage of parsed matches before the time stamp" for each player after 2024/01/01. We have the following test_result:
 
