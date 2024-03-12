@@ -2,6 +2,7 @@ import requests
 import time
 import os
 import json
+import sys
 
 
 def read_json(filepath):
@@ -43,10 +44,10 @@ def get_player_match(account_id):
 
     if response.status_code == 200:
         account_data = response.json()
+        return account_data
     else:
         print(f"Error: {response.status_code}")
         print(response.text)
-    return account_data
 
 
 def get_player(account_id):
@@ -54,11 +55,10 @@ def get_player(account_id):
     response = requests.get(url)
     if response.status_code == 200:
         account_data = response.json()
+        return account_data
     else:
         print(f"Error: {response.status_code}")
-        print(response.text)  # 打印错误信息
-
-    return account_data
+        print(response.text)  
 
 
 def get_parsed_match(number_in_hundreds, less_than_match_id=None):
@@ -117,18 +117,35 @@ def get_player_list(hundreds_of_parsed_match, filepath, less_than_match_id=None)
 # get a list of unique players from recent parsed match. This sampling method is not random for players,
 # as more active players are more likely to be selected
 
-def test_players(account_id, timestamp):
+def retrieve_player_info(account_id):
     player_info = []
-    rank = get_player(account_id)['rank_tier']
+    account_info = get_player(account_id)
     time.sleep(1.5)
-    player_info.append(rank)
+    player_info.append(account_info)
 
     total_match_info = get_player_match(account_id)
-    player_info.append(len(total_match_info))
+    player_info.append(total_match_info)
+
+    time.sleep(1.5)
+    if len(player_info) == 2:
+        print(f"Succeed in retrieving {account_id}")
+    else:
+        print("Failure! The last account_id tried is {account_id}")
+        sys.exit()
+
+    return player_info
+
+
+def test_players(info, timestamp):
+    player_info = []
+    rank = info[0]['rank_tier']
+    time.sleep(1.5)
+    player_info.append(rank)
+    player_info.append(len(info[1]))
 
     match_info = []
     parsed_match_info = []
-    for match_data in total_match_info:
+    for match_data in info[1]:
         if match_data['start_time'] > timestamp:
             match_info.append(match_data)
             if match_data['version'] is not None:
@@ -141,7 +158,7 @@ def test_players(account_id, timestamp):
     player_info.append(len(parsed_match_info))
     player_info.append(len(parsed_match_info) / len(match_info))
     time.sleep(1.5)
-    print("Succeed in testing one player")
+    print(f"Succeed in analyzing player {info[0]['profile']['account_id']}")
 
     return player_info
 
