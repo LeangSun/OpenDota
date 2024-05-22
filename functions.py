@@ -36,14 +36,18 @@ def get_match(match_id):
     query_params = {
         "api_key": '42d8d1f9-cdb4-49e3-805a-9738c5bfc5e8'
     }
-    response = requests.get(url, params=query_params)
+    try:
+        response = requests.get(url, params=query_params,timeout=5)
 
-    if response.status_code == 200:
-        match_data = response.json()
-        return match_data
-    else:
-        print(f"Error: {response.status_code}")
-        print(response.text)
+        if response.status_code == 200:
+            match_data = response.json()
+            return match_data
+        else:
+            print(f"Error: {response.status_code}")
+            print(response.text)
+    except Exception as e:
+        print(f"Request error: {e}")
+    return None
 
 
 def get_player_match(account_id, project=None):
@@ -152,23 +156,49 @@ def get_parsed_match(number_in_hundreds, less_than_match_id=None):
 
 def get_player_list(match_index, filepath, less_than_match_id=99999999999999999):
     account_ids = list(read_json(filepath))
+    initial = len(account_ids)
     i = 0
-    for index in match_index:
-        if index < less_than_match_id:
-            match = None
-            while match is None:
-                match = get_match(index)
-                time.sleep(0.05)
-            i += 1
-            players = match.get("players", [])
-            for player in players:
-                account_id = player.get("account_id")
-                if account_id is not None and account_id not in account_ids:
-                    account_ids.append(account_id)
-                    write_json(filepath, [account_ids])
-            print(
-                f"{i} matches have been analyzed. The last match analyzed is {index}. {len(account_ids)} players have been "
-                f"added")
+    last_match_analyzed = None
+    try:
+        for index in match_index:
+            if index < less_than_match_id:
+                match = None
+                start_time = time.time()
+                while match is None:
+                    match = get_match(index)
+                    time.sleep(0.05)
+                    if time.time() - start_time > 5:
+                        print(f"No progress in fetching match {index} for over 5 seconds. Data saved")
+                        write_json(filepath, account_ids)
+                        start_time = time.time()  # 重置计时器
+                i += 1
+                print(i)
+                players = match.get("players", [])
+                for player in players:
+                    account_id = player.get("account_id")
+                    if account_id is not None and account_id not in account_ids:
+                        account_ids.append(account_id)
+                last_match_analyzed = index
+                if i % 10 == 0:
+                    write_json(filepath, account_ids)
+                    time.sleep(1)
+                    print(f"10 iterations completed. Stop for 5s and data saved. The last match is {last_match_analyzed}")
+    except Exception as e:
+        print(f"Exception occurred: {e}\n"
+              f"The last match analyzed is {last_match_analyzed}. "
+              f"Instead of {initial}, Now we have {len(account_ids)} players")
+        print("restart in 30 seconds")
+        write_json(filepath, account_ids)
+        time.sleep(10)
+        print("restart in 20 seconds")
+        time.sleep(20)
+        print(f"restart with {last_match_analyzed} as the last match analyzed")
+        get_player_list(match_index, filepath, less_than_match_id=last_match_analyzed)
+
+    finally:
+        write_json(filepath, account_ids)
+        print(
+            f"Progress saved.{i} matches have been analyzed. The last match analyzed is {last_match_analyzed}. Instead of {initial},Now we have {len(account_ids)} players")
     return account_ids
 
 
